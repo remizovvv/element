@@ -153,7 +153,9 @@
     nextYear,
     prevMonth,
     nextMonth,
-    changeYearMonthAndClampDate
+    changeYearMonthAndClampDate,
+    extractDateFormatOnly,
+    extractTimeFormatOnly
   } from '../util';
   import Clickoutside from 'element-ui/src/utils/clickoutside';
   import Locale from 'element-ui/src/mixins/locale';
@@ -215,11 +217,10 @@
         const value = value => {this.$refs.timepicker.value = value;};
         const date = date => {this.$refs.timepicker.date = date;};
 
-        this.$watch('format', format);
         this.$watch('value', value);
         this.$watch('date', date);
 
-        format(this.timeFormat);
+        format(this.currentTimeFormat);
         value(this.value);
         date(this.date);
       },
@@ -415,7 +416,7 @@
       },
 
       handleVisibleTimeChange(value) {
-        const time = parseDate(value, this.timeFormat);
+        const time = parseDate(value, this.currentTimeFormat);
         if (time) {
           this.date = modifyDate(time, this.year, this.month, this.monthDate);
           this.userInputTime = null;
@@ -426,7 +427,7 @@
       },
 
       handleVisibleDateChange(value) {
-        const date = parseDate(value, this.dateFormat);
+        const date = parseDate(value, this.currentDateFormat);
         if (date) {
           if (typeof this.disabledDate === 'function' && this.disabledDate(date)) {
             return;
@@ -467,6 +468,8 @@
         showWeekNumber: false,
         timePickerVisible: false,
         format: '',
+        timeFormat: '',
+        dateFormat: '',
         arrowControl: false,
         userInputDate: null,
         userInputTime: null
@@ -498,7 +501,7 @@
         if (this.userInputTime !== null) {
           return this.userInputTime;
         } else {
-          return formatDate(this.value || this.defaultValue, this.timeFormat);
+          return formatDate(this.value || this.defaultValue, this.currentTimeFormat);
         }
       },
 
@@ -506,7 +509,7 @@
         if (this.userInputDate !== null) {
           return this.userInputDate;
         } else {
-          return formatDate(this.value || this.defaultValue, this.dateFormat);
+          return formatDate(this.value || this.defaultValue, this.currentDateFormat);
         }
       },
 
@@ -522,17 +525,21 @@
         return this.year + ' ' + yearTranslation;
       },
 
-      timeFormat() {
-        if (this.format && this.format.indexOf('ss') === -1) {
-          return 'HH:mm';
+      currentTimeFormat() {
+        if (this.timeFormat) {
+          return this.timeFormat;
+        } else if (this.format) {
+          return extractTimeFormatOnly(this.format);
         } else {
           return 'HH:mm:ss';
         }
       },
 
-      dateFormat() {
-        if (this.format) {
-          return this.format.replace('HH', '').replace(/[^a-zA-Z]*mm/, '').replace(/[^a-zA-Z]*ss/, '').trim();
+      currentDateFormat() {
+        if (this.dateFormat) {
+          return this.dateFormat;
+        } else if (this.format) {
+          return extractDateFormatOnly(this.format);
         } else {
           return 'yyyy-MM-dd';
         }

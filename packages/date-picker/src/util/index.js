@@ -215,3 +215,16 @@ export const nextYear = function(date, amount = 1) {
   const month = date.getMonth();
   return changeYearMonthAndClampDate(date, year + amount, month);
 };
+
+export const extractDateFormatOnly = function(format) {
+  return format
+    .replace(/\W?m{1,2}|\W?ZZ/g, '')
+    .replace(/\W?h{1,2}|\W?s{1,3}|\W?a/gi, '')
+    .trim();
+};
+
+export const extractTimeFormatOnly = function(format) {
+  return format
+    .replace(/\W?D{1,2}|\W?Do|\W?d{1,4}|\W?M{1,4}|\W?y{2,4}/g, '')
+    .trim();
+};

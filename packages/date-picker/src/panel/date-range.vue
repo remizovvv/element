@@ -44,7 +44,7 @@
                   @pick="handleMinTimePick"
                   :time-arrow-control="arrowControl"
                   :visible="minTimePickerVisible"
-                  @mounted="$refs.minTimePicker.format=timeFormat">
+                  @mounted="$refs.minTimePicker.format=currentTimeFormat">
                 </time-picker>
               </span>
             </span>
@@ -77,7 +77,7 @@
                   @pick="handleMaxTimePick"
                   :time-arrow-control="arrowControl"
                   :visible="maxTimePickerVisible"
-                  @mounted="$refs.maxTimePicker.format=timeFormat">
+                  @mounted="$refs.maxTimePicker.format=currentTimeFormat">
                 </time-picker>
               </span>
             </span>
@@ -193,7 +193,9 @@
     prevYear,
     nextYear,
     prevMonth,
-    nextMonth
+    nextMonth,
+    extractDateFormatOnly,
+    extractTimeFormatOnly
   } from '../util';
   import Clickoutside from 'element-ui/src/utils/clickoutside';
   import Locale from 'element-ui/src/mixins/locale';
@@ -272,34 +274,38 @@
       },
 
       minVisibleDate() {
-        return this.minDate ? formatDate(this.minDate) : '';
+        return this.minDate ? formatDate(this.minDate, this.currentDateFormat) : '';
       },
 
       maxVisibleDate() {
-        return (this.maxDate || this.minDate) ? formatDate(this.maxDate || this.minDate) : '';
+        return (this.maxDate || this.minDate) ? formatDate(this.maxDate || this.minDate, this.currentDateFormat) : '';
       },
 
       minVisibleTime() {
-        return this.minDate ? formatDate(this.minDate, 'HH:mm:ss') : '';
+        return this.minDate ? formatDate(this.minDate, this.currentTimeFormat) : '';
       },
 
       maxVisibleTime() {
-        return (this.maxDate || this.minDate) ? formatDate(this.maxDate || this.minDate, 'HH:mm:ss') : '';
+        return (this.maxDate || this.minDate) ? formatDate(this.maxDate || this.minDate, this.currentTimeFormat) : '';
       },
 
-      dateFormat() {
-        if (this.format) {
-          return this.format.replace('HH:mm', '').replace(':ss', '').trim();
+      currentTimeFormat() {
+        if (this.timeFormat) {
+          return this.timeFormat;
+        } else if (this.format) {
+          return extractTimeFormatOnly(this.format);
         } else {
-          return 'yyyy-MM-dd';
+          return 'HH:mm:ss';
         }
       },
 
-      timeFormat() {
-        if (this.format && this.format.indexOf('ss') === -1) {
-          return 'HH:mm';
+      currentDateFormat() {
+        if (this.dateFormat) {
+          return this.dateFormat;
+        } else if (this.format) {
+          return extractDateFormatOnly(this.format);
         } else {
-          return 'HH:mm:ss';
+          return 'yyyy-MM-dd';
         }
       },
 
@@ -338,6 +344,8 @@
         minTimePickerVisible: false,
         maxTimePickerVisible: false,
         format: '',
+        timeFormat: '',
+        dateFormat: '',
         arrowControl: false,
         unlinkPanels: false
       };
@@ -446,8 +454,8 @@
 
       handleDateInput(event, type) {
         const value = event.target.value;
-        if (value.length !== this.dateFormat.length) return;
-        const parsedValue = parseDate(value, this.dateFormat);
+        if (value.length !== this.currentDateFormat.length) return;
+        const parsedValue = parseDate(value, this.currentDateFormat);
 
         if (parsedValue) {
           if (typeof this.disabledDate === 'function' &&
@@ -468,7 +476,7 @@
 
       handleDateChange(event, type) {
         const value = event.target.value;
-        const parsedValue = parseDate(value, this.dateFormat);
+        const parsedValue = parseDate(value, this.currentDateFormat);
         if (parsedValue) {
           if (type === 'min') {
             this.minDate = modifyDate(this.minDate, parsedValue.getFullYear(), parsedValue.getMonth(), parsedValue.getDate());
@@ -486,7 +494,7 @@
 
       handleTimeChange(event, type) {
         const value = event.target.value;
-        const parsedValue = parseDate(value, this.timeFormat);
+        const parsedValue = parseDate(value, this.currentTimeFormat);
         if (parsedValue) {
           if (type === 'min') {
             this.minDate = modifyTime(this.minDate, parsedValue.getHours(), parsedValue.getMinutes(), parsedValue.getSeconds());
